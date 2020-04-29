@@ -1,7 +1,10 @@
 <template>
 	<li class="search-result-chart-item" :class="generateClass" :style="generateStyle">
-		<span class="item-label">{{ label }}</span>
-		<span class="item-ghg">{{ displayGhg }}</span>
+		<span class="item-label">{{ displayCity.label }}</span>
+		<span class="item-ghg">{{ displayCity.ghg }}</span>
+		<span class="item-additional">
+			<slot name="additionalContent" v-bind:displayCity="displayCity"></slot>
+		</span>
 		<span class="delete-button" @click="deleteCity" v-if="!isNational">
 			<span>X</span>
 		</span>
@@ -28,15 +31,21 @@ export default {
 		citiesMaxGhg: {
 			type: Number,
 			required: true
-		},
-		isNationalAverage: {
-			type: Boolean,
-			required: false,
-			default: false
 		}
 	},
 	computed: {
 		...mapGetters('national', ['nationalAverageGhg']),
+		displayCity() {
+			const label = this.city.state
+				? `${this.city.name}, ${this.city.state}`
+				: this.city.name
+
+			return {
+				ghg: `${this.city.ghg} lbs`,
+				label,
+				units: this.city.units
+			}
+		},
 		generateClass() {
 			const signficant = 0.1
 			const percent = calculatedPercentDifferenceFromNational(
@@ -64,15 +73,6 @@ export default {
 					this.citiesMaxGhg
 				)})`
 			}
-		},
-		label() {
-			if (this.city.state) {
-				return `${this.city.name}, ${this.city.state}`
-			}
-			return this.city.name
-		},
-		displayGhg() {
-			return `${this.city.ghg} lbs`
 		},
 		isNational() {
 			return this.city.slug === 'national'
@@ -124,7 +124,8 @@ export default {
 		font-size: $h1FontSize;
 	}
 }
-.item-ghg {
+.item-ghg,
+.item-additional {
 	font-size: $h3FontSize;
 	font-weight: bold;
 	padding: $spacer/2 $spacer $spacer;

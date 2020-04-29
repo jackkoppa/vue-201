@@ -7,7 +7,7 @@
 				id="city"
 				class="form-control__input"
 				:placeholder="placeholder"
-				v-model.trim="input.city"
+				v-model.trim="searchTermModel.city"
 				@keyup.enter="attemptSearch"
 				@input="isValidInput"
 			/>
@@ -18,7 +18,7 @@
 				name="state"
 				id="state"
 				class="form-control__select"
-				v-model="input.state"
+				v-model="searchTermModel.state"
 				@change="isValidInput"
 				@keyup.enter="attemptSearch"
 			>
@@ -48,24 +48,37 @@ export default {
 		cities: {
 			type: Array,
 			required: true
+		},
+		searchTerm: {
+			type: Object,
+			required: true
 		}
 	},
 	data() {
 		return {
-			input: {
-				city: '',
-				state: ''
-			},
 			states: listOfStates,
 			placeholder: 'Enter City',
 			errorMessage: '',
 			submitAttempted: false
 		}
 	},
+	computed: {
+		searchTermModel: {
+			get() {
+				return this.searchTerm
+			},
+			set(searchTerm) {
+				this.$emit('searchTermChanged', searchTerm)
+			}
+		}
+	},
 	methods: {
 		attemptSearch() {
 			if (this.isValidSubmit()) {
-				fetchEnergyUsageByCityAndState(this.input.city, this.input.state)
+				fetchEnergyUsageByCityAndState(
+					this.searchTermModel.city,
+					this.searchTermModel.state
+				)
 					.then(response => {
 						const cityResponse = this.generateCityResponse(response)
 						if (cityResponse) {
@@ -85,12 +98,12 @@ export default {
 				this.errorMessage = ''
 				return true
 			}
-			this.input.city = this.input.city.trim()
-			if (!this.input.city || !this.input.state) {
+			this.searchTermModel.city = this.searchTermModel.city.trim()
+			if (!this.searchTermModel.city || !this.searchTermModel.state) {
 				this.errorMessage = 'Please enter a city & state'
 				return false
 			}
-			if (this.input.state.length !== 2) {
+			if (this.searchTermModel.state.length !== 2) {
 				this.errorMessage = 'Please enter a valid state'
 				return false
 			}
@@ -112,7 +125,7 @@ export default {
 			return true
 		},
 		generateCityStateSlug() {
-			const { city, state } = this.input
+			const { city, state } = this.searchTermModel
 			const lowerCaseCity = city.toLowerCase()
 			const capitalizedCity = capitalizeAllWords(lowerCaseCity)
 			const slug = `${lowerCaseCity}-${state}`
@@ -127,7 +140,12 @@ export default {
 						slug,
 						name: capitalizedCity,
 						state: state,
-						ghg: calculateGhgPerCapita(cityResponse)
+						ghg: calculateGhgPerCapita(cityResponse),
+						units: {
+							residential: cityResponse.residential.housing_units,
+							commercial: cityResponse.commercial.num_establishments,
+							industrial: cityResponse.industrial.num_establishments
+						}
 					}
 				}
 			}
@@ -136,8 +154,8 @@ export default {
 			this.$emit('cityAdded', newCityResponse)
 		},
 		clearInput() {
-			this.input.city = ''
-			this.input.state = ''
+			this.searchTermModel.city = ''
+			this.searchTermModel.state = ''
 			this.errorMessage = ''
 			this.submitAttempted = false
 		}

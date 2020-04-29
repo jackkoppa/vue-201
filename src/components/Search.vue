@@ -1,7 +1,36 @@
 <template>
 	<div class="search">
-		<SearchBar :cities="cities" @cityAdded="addCity" />
-		<SearchResultChart :cities="cities" @cityDeleted="deleteCity" />
+		<button @click="setDefaultCityState">Set To Default City</button>
+		<SearchBar
+			:cities="cities"
+			:searchTerm="searchTerm"
+			@searchTermChanged="searchTermChanged"
+			@cityAdded="addCity"
+		/>
+		<br />
+		<code>
+			<pre>
+Model City: {{ searchTerm.city }}, 
+Model State: {{ searchTerm.state }}
+			</pre
+			>
+		</code>
+		<br />
+		<h3>annual lbs of greenhouse gases (GHG) per capita</h3>
+		<h4>
+			See additional details for
+			<select name="currentDetailType" id="currentDetailType" v-model="currentDetailType">
+				<option value="residential">Residential</option>
+				<option value="commercial">Commercial</option>
+				<option value="industrial">Industrial</option>
+			</select>
+			data
+		</h4>
+		<SearchResultChart
+			:cities="cities"
+			:currentDetailType="currentDetailType"
+			@cityDeleted="deleteCity"
+		/>
 	</div>
 </template>
 
@@ -25,7 +54,12 @@ export default {
 	},
 	data() {
 		return {
-			cities: []
+			cities: [],
+			currentDetailType: 'residential',
+			searchTerm: {
+				city: '',
+				state: ''
+			}
 		}
 	},
 	computed: {
@@ -50,6 +84,9 @@ export default {
 		},
 		deleteCity(slug) {
 			this.cities = this.cities.filter(city => city.slug !== slug)
+		},
+		setDefaultCityState() {
+			this.searchTerm = { city: 'Washington', state: 'DC' }
 		}
 	},
 	mounted() {

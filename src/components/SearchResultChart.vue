@@ -1,7 +1,10 @@
 <template>
 	<div>
-		<h3>annual lbs of greenhouse gases (GHG) per capita</h3>
-		<transition-group name="search-result-chart" tag="ul">
+		<transition-group
+			name="search-result-chart"
+			tag="ul"
+			v-if="currentDetailType === 'residential'"
+		>
 			<SearchResultChartItem
 				v-for="city in sortedCities"
 				class="search-result-chart__item"
@@ -9,7 +12,59 @@
 				:city="city"
 				:cities-max-ghg="citiesMaxGhg"
 				@cityDeleted="deleteCity"
-			/>
+			>
+				<template v-slot:additionalContent="{ displayCity }">
+					# of Residential Units:
+					<span v-if="displayCity.units">
+						{{ displayCity.units.residential }}
+					</span>
+					<span v-else>N/A</span>
+				</template>
+			</SearchResultChartItem>
+		</transition-group>
+		<transition-group
+			name="search-result-chart"
+			tag="ul"
+			v-if="currentDetailType === 'commercial'"
+		>
+			<SearchResultChartItem
+				v-for="city in sortedCities"
+				class="search-result-chart__item"
+				:key="city.slug"
+				:city="city"
+				:cities-max-ghg="citiesMaxGhg"
+				@cityDeleted="deleteCity"
+			>
+				<template v-slot:additionalContent="{ displayCity }">
+					# of Commercial Establishments:
+					<span v-if="displayCity.units">
+						{{ displayCity.units.commercial }}
+					</span>
+					<span v-else>N/A</span>
+				</template>
+			</SearchResultChartItem>
+		</transition-group>
+		<transition-group
+			name="search-result-chart"
+			tag="ul"
+			v-if="currentDetailType === 'industrial'"
+		>
+			<SearchResultChartItem
+				v-for="city in sortedCities"
+				class="search-result-chart__item"
+				:key="city.slug"
+				:city="city"
+				:cities-max-ghg="citiesMaxGhg"
+				@cityDeleted="deleteCity"
+			>
+				<template v-slot:additionalContent="{ displayCity }">
+					# of Industrial Facilities:
+					<span v-if="displayCity.units">
+						{{ displayCity.units.industrial }}
+					</span>
+					<span v-else>N/A</span>
+				</template>
+			</SearchResultChartItem>
 		</transition-group>
 	</div>
 </template>
@@ -27,6 +82,10 @@ export default {
 	props: {
 		cities: {
 			type: Array,
+			required: true
+		},
+		currentDetailType: {
+			type: String,
 			required: true
 		}
 	},
